@@ -55,10 +55,10 @@
             this.buttonsGroup.Size = new System.Drawing.Size(702, 36);
             this.buttonsGroup.TabIndex = 1;
             this.buttonsGroup.TabStop = false;
-            this.buttonsGroup.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
             // execButton
             // 
+            this.execButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.execButton.Location = new System.Drawing.Point(540, 7);
             this.execButton.Name = "execButton";
             this.execButton.Size = new System.Drawing.Size(75, 23);
@@ -69,6 +69,7 @@
             // 
             // cancelButton
             // 
+            this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.Location = new System.Drawing.Point(621, 7);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);

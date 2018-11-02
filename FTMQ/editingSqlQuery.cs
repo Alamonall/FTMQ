@@ -26,7 +26,8 @@ namespace FTMQ
         public void showingTheQuery()
         {
             this.Show();
-            queryRichTextBox.Text = instBdDataView.getQuery();
+            queryRichTextBox.Text = instBdDataView.getMemorizedQuery();
+            this.TopMost = true;
         }
 
         private void bCancel_Click(object sender, EventArgs e)
@@ -41,7 +42,7 @@ namespace FTMQ
                 MessageBox.Show("Запрос пустой");
             else
             {
-                instBdDataView.loadingDataInDataGridView(queryRichTextBox.Text, true);
+                instBdDataView.loadingDataInDataGridView(queryRichTextBox.Text);
                 this.Hide();
             }
         }

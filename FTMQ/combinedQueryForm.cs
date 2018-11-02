@@ -6,57 +6,84 @@ namespace FTMQ
 {
     public partial class combinedQueryForm : Form
     {
-        bdDataView instBdDataView;
-        private bool _bd; //при true - ege, false - gia
+        private bdDataView instBdDataView;
+        private List<string> listQuerysNames;
 
-        public bool Bd { get => _bd; set => _bd = value; }
+        private List<string> listEgeQuerys;
+        private List<string> listOgeQuerys;
 
         public combinedQueryForm(bdDataView instBdDataView)
         {
             this.instBdDataView = instBdDataView;
+            listQuerysNames = new List<string>();
+            listEgeQuerys = new List<string>();
+            listOgeQuerys = new List<string>();
             InitializeComponent();
         }
-
-        private void combinedQueryForm_Load(object sender, EventArgs e)
+        
+        private void addingParameters()
         {
-            Dictionary<string, string> temp = null;
-            if (_bd)
+            if (instBdDataView.whichBase)
             {
-                temp = instBdDataView.SqlCommandsListForEge;
+                listEgeQuerys.Add("Класс/Категория");
+                listQuerysCheckBox.Items.Add("Класс/Категория");
+                listEgeQuerys.Add("Серия/Тип доку");
+                listQuerysCheckBox.Items.Add("Серия/Тип доку");
+                listEgeQuerys.Add("Дейст.рез/Зарег на жизнь");
+                listQuerysCheckBox.Items.Add("Дейст.рез/Зарег на жизнь");
+                listEgeQuerys.Add("Наим/Параметр");
+                listQuerysCheckBox.Items.Add("Наим/Параметр");
+                listEgeQuerys.Add("Тип экз/Параметр");
+                listQuerysCheckBox.Items.Add("Тип экз/Параметр");
             }
-            if (!_bd)
+            else
             {
-                temp = instBdDataView.SqlCommandsListForGia;
-            }
-
-            foreach (KeyValuePair<string, string> item in temp)
-            {
-                listQuerysCheckBox.Items.Add(item.Key);
+                listOgeQuerys.Add("My Blood");
+                listQuerysCheckBox.Items.Add("My Blood");
+                listOgeQuerys.Add("My Blood");
+                listQuerysCheckBox.Items.Add("My Blood");
+                listOgeQuerys.Add("My Blood");
+                listQuerysCheckBox.Items.Add("My Blood");
             }
         }
 
+        private void combinedQueryForm_Load(object sender, EventArgs e){}
 
         private void execButton_Click(object sender, EventArgs e)
         {
-            instBdDataView.executeCombinedQuery(listQuerysCheckBox,_bd);
+            foreach (String it in listQuerysCheckBox.CheckedItems)
+            {
+                Console.WriteLine("CheckedItemName = " + it);
+                listQuerysNames.Add(it);
+            }
+            if(listQuerysNames.Count == 0)
+            {
+                MessageBox.Show("Выберите параметр");
+                return;
+            }
+            instBdDataView.additionalParametrChecking(listQuerysNames);
+            listQuerysCheckBox.Items.Clear();
             this.Hide();
             instBdDataView.Show();
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
+            listQuerysCheckBox.Items.Clear();
             this.Hide();
             instBdDataView.Show();
         }
 
         private void listQuerysCheckBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            CheckedListBox box = (CheckedListBox)sender;
+            Console.WriteLine("Line = " + box.CheckedItems);
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
+        internal void choiceForm()
         {
-
+            addingParameters();
+            this.Show();
         }
     }
 }
