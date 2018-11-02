@@ -78,8 +78,6 @@ namespace FTMQ
             showCurrentQuerys();
         }
 
-        
-
         private void BdDataView_Load(object sender, EventArgs arg) { }
 
         //возвращение префикса для выбранной базы 
@@ -119,7 +117,7 @@ namespace FTMQ
                 //}
                 //if (table != null)
                 //    table = null;
-                dataGridView1.DataSource = bindingSource1;
+                dataGridView.DataSource = bindingSource1;
                 dataAdapter = new SqlDataAdapter(getPrefixFofBd() + queryText, connectionString);
                 SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);
                 table = new SD.DataTable();
@@ -141,7 +139,7 @@ namespace FTMQ
             listOfMethodsWithParaametrs = list;
             loadingDataInDataGridView(mainSqlQuery);
             table.Columns.Add("Ошибки"); //добавляем столбец с описанием ошибок
-            Console.WriteLine("Колво записей: " + dataGridView1.Rows.Count);
+            Console.WriteLine("Колво записей: " + dataGridView.Rows.Count);
             foreach (String item in listOfMethodsWithParaametrs) {
                 switch (item)
                 {
@@ -173,7 +171,7 @@ namespace FTMQ
         private void clearingUnrelevantData()
         {
            // return;
-            Console.WriteLine("Записей на входе: " + dataGridView1.Rows.Count);
+            Console.WriteLine("Записей на входе: " + dataGridView.Rows.Count);
             try {                
                 Guid temp = new Guid();
                 foreach (SD.DataRow row in table.Rows)
@@ -192,12 +190,12 @@ namespace FTMQ
             } catch(Exception e){
                 MessageBox.Show("Какого-то поля нет в таблице: + " + e);
             }
-            Console.WriteLine("Записей на выходе: " + dataGridView1.Rows.Count);
+            Console.WriteLine("Записей на выходе: " + dataGridView.Rows.Count);
         }
 
         private void checkingOVZPart()
         {
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            foreach (DataGridViewRow row in dataGridView.Rows)
             {
                 switch (row.Cells["Тип экзамена"].Value)
                 {
@@ -238,7 +236,7 @@ namespace FTMQ
 
         private void checkingUKPPart()
         {
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            foreach (DataGridViewRow row in dataGridView.Rows)
             {
                 
                 //Console.WriteLine("Параметр УКП: " + row.Cells["Параметр УКП"].Value + "; Школа: " + row.Cells["Наименование школы"].Value + ";");
@@ -265,7 +263,7 @@ namespace FTMQ
             {
                 Console.WriteLine("На активный результат");
 
-                foreach (DataGridViewRow row in dataGridView1.Rows)
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
                     if(row.Cells["Код предмета"].Equals(1) || row.Cells["Код предмета"].Equals(2) || row.Cells["Код предмета"].Equals(22))
                         switch (row.Cells["Допуск"].Value)
@@ -309,7 +307,7 @@ namespace FTMQ
         private void checkingPassport()
         {
             try { 
-                foreach(DataGridViewRow row in dataGridView1.Rows)
+                foreach(DataGridViewRow row in dataGridView.Rows)
                 {
                     switch (row.Cells["Тип документа"].Value)
                     {
@@ -342,7 +340,7 @@ namespace FTMQ
         {            
             try
             {
-                foreach (DataGridViewRow row in dataGridView1.Rows)
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
                     switch (row.Cells["Код категории"].Value)
                     {
@@ -394,7 +392,7 @@ namespace FTMQ
             Application.Exit();
         }
 
-        private void dataGridView1_Sorted(object sender, EventArgs e)
+        private void dataGridView_Sorted(object sender, EventArgs e)
         {
             foreach (String item in listOfMethodsWithParaametrs)
             {
@@ -425,7 +423,7 @@ namespace FTMQ
         }
         
         //обработка окна редактирования запроса
-        private void editQueryToolStripMenuItemToolStripMenuItem_Click(object sender, EventArgs e)
+        private void editingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (editQueryForm == null)
                 editQueryForm = new editQueryForm(this);
@@ -434,11 +432,9 @@ namespace FTMQ
 
         public MenuStrip getMenuStrip() => menuStrip1;
 
-        private void dataGridView1_CellEnter(object sender, DataGridViewCellEventArgs e) => previewWindow.Text = "" + dataGridView1[e.ColumnIndex, e.RowIndex].Value;
+        private void dataGridView_CellEnter(object sender, DataGridViewCellEventArgs e) => previewBox.Text = "" + dataGridView[e.ColumnIndex, e.RowIndex].Value;
 
-     
-
-        private void combineQueryToolStripMenuItem_Click(object sender, EventArgs e)
+        private void combinedQueryMenu_Click(object sender, EventArgs e)
         {
             if (combinedQueryForm == null)
                 combinedQueryForm = new combinedQueryForm(this);
@@ -450,7 +446,6 @@ namespace FTMQ
         * */
         private void gettingSqlCommands()
         {
-            
             try
             {
                 foreach (string file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory + "SqlCommands\\Ege\\", "*.sql"))
@@ -489,12 +484,12 @@ namespace FTMQ
                 temp = sqlCommandsListForEge;
             else
                 temp = sqlCommandsListForOge;
-            completeQuerysToolStripMenuItem.DropDownItems.Clear();
+            completeQueryMenu.DropDownItems.Clear();
             foreach (KeyValuePair<string, string> entry in temp)
             {
                 ToolStripMenuItem anotherOne = new ToolStripMenuItem(entry.Key);
                 anotherOne.Click += new EventHandler(this.execSqlCommandEvent);
-                completeQuerysToolStripMenuItem.DropDownItems.Add(anotherOne);
+                completeQueryMenu.DropDownItems.Add(anotherOne);
             }
         }
 
@@ -569,7 +564,7 @@ namespace FTMQ
         }
 
         //экспорт в Excel текущей таблицы
-        private void exportToExcelToolStripMenuItem_Click(object sender, EventArgs e)
+        private void exportToExcelTSMI_Click(object sender, EventArgs e)
         {
             var excelApp = new Microsoft.Office.Interop.Excel.Application();
             
@@ -600,17 +595,16 @@ namespace FTMQ
         }
 
         //активируем базу ЕГЭ. Все запросы будут обращаться к ней
-        private void egeBDToolStripMenuItem_Click(object sender, EventArgs e)
+        private void egeToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             whichBase = true;
             showCurrentQuerys();
         }
         //активируем базу ОГЭ. Все запросы будут обращаться к ней
-        private void ogeBDToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ogeToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             whichBase = false;
             showCurrentQuerys();
         }
-
     }   
 }
