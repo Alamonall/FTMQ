@@ -65,6 +65,7 @@ namespace FTMQ
             listQuerysCheckBox.Items.Clear();
             this.Hide();
             instBdDataView.Show();
+            instBdDataView.Enabled = true;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
@@ -72,6 +73,7 @@ namespace FTMQ
             listQuerysCheckBox.Items.Clear();
             this.Hide();
             instBdDataView.Show();
+            instBdDataView.Enabled = true;
         }
 
         private void listQuerysCheckBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -83,7 +85,7 @@ namespace FTMQ
         internal void choiceForm()
         {
             addingParameters();
-            this.Enabled = false;
+            instBdDataView.Enabled = false;
             this.Show();
         }
     }

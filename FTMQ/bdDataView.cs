@@ -438,6 +438,7 @@ namespace FTMQ
         {
             if (combinedQueryForm == null)
                 combinedQueryForm = new combinedQueryForm(this);
+            this.Enabled = false;
             combinedQueryForm.choiceForm();
         }
 
