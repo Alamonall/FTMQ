@@ -83,6 +83,7 @@ namespace FTMQ
         internal void choiceForm()
         {
             addingParameters();
+            this.Enabled = false;
             this.Show();
         }
     }
