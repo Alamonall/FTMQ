@@ -65,7 +65,6 @@ namespace FTMQ
         static void Main()
         {
             Application.Run(new bdDataView());
-
         }
 
         public bdDataView() {
@@ -128,8 +127,6 @@ namespace FTMQ
 
         /*
         * Функция для получения файлов запросов и сохранение их в списки для выполнения через выпадающее меню
-        * 
-        * 
         */
         private void gettingSqlCommands()
         {
@@ -207,7 +204,6 @@ namespace FTMQ
             whichBase = false;
             showCurrentQuerys();
         }
-
 
         /*-------------------------------------------------*/
         /*экспорт в Excel текущей таблицы
@@ -321,14 +317,16 @@ namespace FTMQ
                         if (row.Cells["Спец рассадка"].Value.Equals(1) && !row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
                         {
                             Console.WriteLine("checkingOVZPart: ЕГЭ. Параметр ОВЗ не указан");
-                            row.Cells["Ошибки"].Value += "Категория; ";
+                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                row.Cells["Ошибки"].Value += "Категория; ";
                             row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
                             row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
                         }
                         else if (row.Cells["Спец рассадка"].Value.Equals(0) && row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
                         {
                             Console.WriteLine("checkingOVZPart: ЕГЭ. Спец рассадка неверна");
-                            row.Cells["Ошибки"].Value += "Категория; ";
+                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                row.Cells["Ошибки"].Value += "Категория; ";
                             row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
                             row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
                         }
@@ -337,15 +335,16 @@ namespace FTMQ
                         if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
                         {
                             Console.WriteLine("checkingOVZPart: ГВЭ");
-                            row.Cells["Ошибки"].Value += "Категория; ";
+                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                row.Cells["Ошибки"].Value += "Категория; ";
                             row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
                         }
                         break;
                     case 3:
                         if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
                         {
-                            Console.WriteLine("checkingOVZPart: ЕГЭ/ГВЭ");
-                            row.Cells["Ошибки"].Value += "Категория; ";
+                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                row.Cells["Ошибки"].Value += "Категория; ";
                             row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
                         }
                         break;
@@ -368,8 +367,8 @@ namespace FTMQ
                     )
                     && !row.Cells["Параметр УКП"].Value.Equals(6))
                 {
-                    Console.WriteLine("Тип: " + row.Cells["Наименование школы"].Value);
-                    row.Cells["Ошибки"].Value += "УКП; ";
+                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*УКП;\w*", RegexOptions.IgnoreCase))
+                        row.Cells["Ошибки"].Value += "УКП; ";
                     row.Cells["Параметр УКП"].Style.BackColor = Color.Cyan;
                     row.Cells["Наименование школы"].Style.BackColor = Color.Cyan;
                 }
@@ -390,7 +389,8 @@ namespace FTMQ
                             case 1: //допуск на русский
                                 if (!row.Cells["Код предмета"].Value.Equals(2) || !row.Cells["Код предмета"].Value.Equals(22)) //не записан на мат
                                 {
-                                    row.Cells["Ошибки"].Value += "Экзамен; ";
+                                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
+                                        row.Cells["Ошибки"].Value += "Экзамен; ";
                                     row.Cells["Допуск"].Style.BackColor = Color.Yellow;
                                     row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
                                 }
@@ -398,20 +398,23 @@ namespace FTMQ
                             case 2: //допуск на мат
                                 if (!row.Cells["Код предмета"].Value.Equals(1)) //не записан на рус
                                 {
-                                    row.Cells["Ошибки"].Value += "Экзамен; ";
+                                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
+                                        row.Cells["Ошибки"].Value += "Экзамен; ";
                                     row.Cells["Допуск"].Style.BackColor = Color.Yellow;
                                     row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
                                 }
                                 break;
                             case 3:
-                                row.Cells["Ошибки"].Value += "Экзамен; ";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Экзамен; ";
                                 row.Cells["Допуск"].Style.BackColor = Color.Yellow;
                                 row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
                                 break;
                             case 0:
                                 if (!(row.Cells["Код предмета"].Value.Equals(2) || row.Cells["Код предмета"].Value.Equals(22)) && !row.Cells["Код предмета"].Value.Equals(1))
                                 {
-                                    row.Cells["Ошибки"].Value += "Экзамен; ";
+                                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
+                                        row.Cells["Ошибки"].Value += "Экзамен; ";
                                     row.Cells["Допуск"].Style.BackColor = Color.Yellow;
                                     row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
                                 }
@@ -436,7 +439,8 @@ namespace FTMQ
                         case 1:
                             if (!Regex.IsMatch((string)row.Cells["Серия паспорта"].Value, @"^\d{4}$", RegexOptions.IgnoreCase))
                             {
-                                row.Cells["Ошибки"].Value += "Паспорт";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Паспорт;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Паспорт; ";
                                 row.Cells["Тип документа"].Style.BackColor = Color.Red;
                                 row.Cells["Серия паспорта"].Style.BackColor = Color.Red;
                             }
@@ -444,7 +448,8 @@ namespace FTMQ
                         default:
                             if (Regex.IsMatch((string)row.Cells["Серия паспорта"].Value, @"^\d{4}$", RegexOptions.IgnoreCase))
                             {
-                                row.Cells["Ошибки"].Value += "Паспорт";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Паспорт;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Паспорт; ";
                                 row.Cells["Тип документа"].Style.BackColor = Color.Red;
                                 row.Cells["Серия паспорта"].Style.BackColor = Color.Red;
                             }
@@ -469,25 +474,26 @@ namespace FTMQ
                         case 1:
                             if (Regex.IsMatch((string)row.Cells["Класс"].Value, @"^0\S*", RegexOptions.IgnoreCase))
                             {
-                                row.Cells["Ошибки"].Value += "Класс Не правильно заполнение поле \"Класс\"";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Класс;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Класс; ";
                                 row.Cells["Класс"].Style.BackColor = Color.Cyan;
                                 row.Cells["Код категории"].Style.BackColor = Color.Cyan;
-
                             }
                             break;
                         case 4:
                             if (!row.Cells["Класс"].Value.Equals("0"))
                             {
-                                row.Cells["Ошибки"].Value += "Класс Не правильно заполнение поле \"Класс\"";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Класс;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Класс; ";
                                 row.Cells["Класс"].Style.BackColor = Color.Cyan;
                                 row.Cells["Код категории"].Style.BackColor = Color.Cyan;
                             }
-
                             break;
                         case 3:
                             if (!row.Cells["Класс"].Value.Equals("0"))
                             {
-                                row.Cells["Ошибки"].Value += "Класс Не правильно заполнение поле \"Класс\"";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Класс;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Класс; ";
                                 row.Cells["Класс"].Style.BackColor = Color.Cyan;
                                 row.Cells["Код категории"].Style.BackColor = Color.Cyan;
                             }
@@ -495,7 +501,8 @@ namespace FTMQ
                         case 8:
                             if (Regex.IsMatch((string)row.Cells["Класс"].Value, @"^0\S{isCyrillic}*", RegexOptions.IgnoreCase))
                             {
-                                row.Cells["Ошибки"].Value += "Класс Не правильно заполнение поле \"Класс\"";
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Класс;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Класс; ";
                                 row.Cells["Класс"].Style.BackColor = Color.Cyan;
                                 row.Cells["Код категории"].Style.BackColor = Color.Cyan;
                             }

@@ -101,7 +101,7 @@ namespace FTMQ
             this.combinedQueryMenu.Name = "combinedQueryMenu";
             this.combinedQueryMenu.Size = new System.Drawing.Size(130, 22);
             this.combinedQueryMenu.Text = "Combined";
-            this.combinedQueryMenu.Click += new System.EventHandler(this.combinedQueryMenu_Click);
+            //this.combinedQueryMenu.Click += new System.EventHandler(this.combinedQueryMenu_Click);
             // 
             // completeQueryMenu
             // 
