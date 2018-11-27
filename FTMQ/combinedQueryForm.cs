@@ -9,51 +9,19 @@ namespace FTMQ
         private bdDataView instBdDataView;
         private List<string> listQuerysNames;
 
-        private List<string> listEgeQuerys;
-        private List<string> listOgeQuerys;
-
         public combinedQueryForm(bdDataView instBdDataView)
         {
-            this.instBdDataView = instBdDataView;
+            this.instBdDataView = instBdDataView; //----------
             listQuerysNames = new List<string>();
-            listEgeQuerys = new List<string>();
-            listOgeQuerys = new List<string>();
             InitializeComponent();
         }
         
-        private void addingParameters()
-        {
-            if (instBdDataView.whichBase)
-            {
-                listEgeQuerys.Add("Класс/Категория");
-                listQuerysCheckBox.Items.Add("Класс/Категория");
-                listEgeQuerys.Add("Серия/Тип доку");
-                listQuerysCheckBox.Items.Add("Серия/Тип доку");
-                listEgeQuerys.Add("Дейст.рез/Зарег на жизнь");
-                listQuerysCheckBox.Items.Add("Дейст.рез/Зарег на жизнь");
-                listEgeQuerys.Add("Наим/Параметр");
-                listQuerysCheckBox.Items.Add("Наим/Параметр");
-                listEgeQuerys.Add("Тип экз/Параметр");
-                listQuerysCheckBox.Items.Add("Тип экз/Параметр");
-            }
-            else
-            {
-                listOgeQuerys.Add("My Blood");
-                listQuerysCheckBox.Items.Add("My Blood");
-                listOgeQuerys.Add("My Blood");
-                listQuerysCheckBox.Items.Add("My Blood");
-                listOgeQuerys.Add("My Blood");
-                listQuerysCheckBox.Items.Add("My Blood");
-            }
-        }
-
         private void combinedQueryForm_Load(object sender, EventArgs e){}
 
         private void execButton_Click(object sender, EventArgs e)
         {
             foreach (String it in listQuerysCheckBox.CheckedItems)
             {
-                Console.WriteLine("CheckedItemName = " + it);
                 listQuerysNames.Add(it);
             }
             if(listQuerysNames.Count == 0)
@@ -64,8 +32,8 @@ namespace FTMQ
             instBdDataView.additionalParametrChecking(listQuerysNames);
             listQuerysCheckBox.Items.Clear();
             this.Hide();
-            instBdDataView.Show();
             instBdDataView.Enabled = true;
+            instBdDataView.Show();            
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
@@ -82,11 +50,48 @@ namespace FTMQ
             Console.WriteLine("Line = " + box.CheckedItems);
         }
 
-        internal void choiceForm()
+        internal void choiceForm(string name)
         {
-            addingParameters();
+            addingParameters(name);
             instBdDataView.Enabled = false;
             this.Show();
+        }
+
+        private void addingParameters(string srt)
+        {
+            if (instBdDataView.whichBase)
+            {
+                switch (srt)
+                {
+                    case "Участники":
+                        {
+                            listQuerysCheckBox.Items.Add("Класс/Категория");
+                            listQuerysCheckBox.Items.Add("Серия/Тип доку");
+                            listQuerysCheckBox.Items.Add("Дейст.рез/Зарег на жизнь");
+                            listQuerysCheckBox.Items.Add("Наим/Параметр");
+                            listQuerysCheckBox.Items.Add("Тип экз/Параметр");
+                            break;
+                        }
+                }
+               
+            }
+            else
+            {
+                switch (srt)
+                {
+                    case "Работники":
+                        {
+                            listQuerysCheckBox.Items.Add("Проверка на телефон");
+                            listQuerysCheckBox.Items.Add("Проверка на почту");
+                            listQuerysCheckBox.Items.Add("Проверка на код работника");
+                            listQuerysCheckBox.Items.Add("Проверка на код станционарный телефон");
+                            listQuerysCheckBox.Items.Add("Проверка на специализацию");
+                            listQuerysCheckBox.Items.Add("Проверка на прикрепление к ппэ");
+                            listQuerysCheckBox.Items.Add("Проверка на категорию");
+                            break;
+                        }
+                }
+            }
         }
     }
 }
