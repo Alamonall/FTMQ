@@ -26,7 +26,7 @@ namespace FTMQ
         public void showingTheQuery()
         {
             this.Show();
-            queryRichTextBox.Text = instBdDataView.getMemorizedQuery();
+            queryRichTextBox.Text = instBdDataView.MemorizedQuery;
             this.TopMost = true;
         }
 
@@ -43,6 +43,7 @@ namespace FTMQ
             else
             {
                 instBdDataView.loadingDataInDataGridView(queryRichTextBox.Text);
+                instBdDataView.activeCategory = null;
                 this.Hide();
             }
         }

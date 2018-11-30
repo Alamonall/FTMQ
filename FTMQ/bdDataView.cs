@@ -23,7 +23,7 @@ namespace FTMQ
                                             Integrated Security=SSPI;
                                             Trusted_Connection=yes;
                                             Connection Timeout = 60";
-        private string mainSqlQuery = @"select
+        private string queryForParticipants = @"select
 	                    distinct p.ParticipantID as [Айди участника]
 	                    ,p.Surname + ' ' + p.Name + ' ' + p.SecondName as [ФИО]
 	                    ,p.ParticipantCategoryFK as [Код категории]
@@ -56,10 +56,15 @@ namespace FTMQ
         public bool whichBase = true; // true при егэ, false при огэ
                                       //private string queryText = "";
 
-        Dictionary<String, String> sqlCommandsListForOge = new Dictionary<String, String>();
-        Dictionary<String, String> sqlCommandsListForEge = new Dictionary<String, String>();
+        Dictionary<String, String> listOfOgeCompleteQuerys = new Dictionary<String, String>();
+        Dictionary<String, String> listOfEgeCompleteQuerys = new Dictionary<String, String>();
+
+        List<Category> listOfOgeCombineQuerys = new List<Category>();
+        List<Category> listOfEgeCombineQuerys = new List<Category>();
 
         public SD.DataTable table;
+        public List<Action> activeCategory;
+        public string nameActiveCategory;
 
         [STAThread]
         static void Main()
@@ -69,40 +74,19 @@ namespace FTMQ
 
         public bdDataView() {
             InitializeComponent();
-            gettingSqlCommands();
+            setCompleteQuerys();
+            setCombineQuerys();
             showCurrentQuerys();
         }
 
-        private void BdDataView_Load(object sender, EventArgs arg) { }
 
+    #region MainMethods 
+        /*сложная реализацяи*/
         private void dataGridView_Sorted(object sender, EventArgs e)
         {
-            foreach (String item in listOfMethodsWithParaametrs)
-            {
-                switch (item)
-                {
-                    case "Класс/Категория":
-                        checkingCategoryClass();
-                        Console.WriteLine("Класс/Категория");
-                        break;
-                    case "Серия/Тип доку":
-                        checkingPassport();
-                        Console.WriteLine("Серия/Тип доку");
-                        break;
-                    case "Дейст. рез/Зарег на жизнь":
-                        checkingActiveResult();
-                        Console.WriteLine("Дейст. рез/Зарег на жизнь");
-                        break;
-                    case "Наим/Параметр":
-                        checkingUKPPart();
-                        Console.WriteLine("Наим/Параметр");
-                        break;
-                    case "Тип экз/Параметр":
-                        checkingOVZPart();
-                        Console.WriteLine("Тип экз/Параметр");
-                        break;
-                }
-            }
+            if(activeCategory!= null && activeCategory.Count!=0)
+                foreach (Action act in activeCategory)
+                    act.Invoke();
         }
         
         //обработка окна редактирования запроса
@@ -111,24 +95,30 @@ namespace FTMQ
             if (editQueryForm == null)
                 editQueryForm = new editQueryForm(this);
             editQueryForm.showingTheQuery();
-        }
-
-        public MenuStrip getMenuStrip() => menuStrip1;
-
-        private void dataGridView_CellEnter(object sender, DataGridViewCellEventArgs e) => previewBox.Text = "" + dataGridView[e.ColumnIndex, e.RowIndex].Value;
+        }        
 
         private void combinedQueryMenu_Click(object sender, EventArgs e)
         {
             if (combinedQueryForm == null)
                 combinedQueryForm = new combinedQueryForm(this);
             this.Enabled = false;
-            combinedQueryForm.choiceForm("" + (ToolStripMenuItem)sender);
+            Category cat;
+            if (whichBase)
+            {
+                cat = listOfEgeCombineQuerys.Find(x => x.Name.Equals((sender as ToolStripMenuItem).Text));
+            }
+            else
+            {
+                cat = listOfOgeCombineQuerys.Find(x => x.Name.Equals((sender as ToolStripMenuItem).Text));
+            }
+            combinedQueryForm.addingParameters(cat);
+            nameActiveCategory = cat.Name;
         }
 
         /*
         * Функция для получения файлов запросов и сохранение их в списки для выполнения через выпадающее меню
         */
-        private void gettingSqlCommands()
+        private void setCompleteQuerys()
         {
             try
             {
@@ -137,7 +127,7 @@ namespace FTMQ
                     using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(1251)))
                     {
                         String line = sr.ReadToEnd();
-                        sqlCommandsListForEge.Add(Path.GetFileNameWithoutExtension(file), line);                     
+                        listOfEgeCompleteQuerys.Add(Path.GetFileNameWithoutExtension(file), line);                     
                     }
                 }
                 foreach (string file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory + "SqlCommands\\Gia\\", "*.sql"))
@@ -145,7 +135,7 @@ namespace FTMQ
                     using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(1251)))
                     {
                         String line = sr.ReadToEnd();
-                        sqlCommandsListForOge.Add(Path.GetFileNameWithoutExtension(file), line);
+                        listOfEgeCompleteQuerys.Add(Path.GetFileNameWithoutExtension(file), line);
                     }
                 }
             }
@@ -154,26 +144,56 @@ namespace FTMQ
                 MessageBox.Show("Исключение говорит: " + ex.Message);
             } 
         }
+
+        private void setCombineQuerys()
+        {
+            Dictionary<string, Action> temp = new Dictionary<string, Action>
+            {
+                { "Проверка на категорию", checkCategoryClass },
+                { "Проверка на тип документа", checkPassport },
+                { "Проверка на активный результат", checkActiveResult },
+                { "Проверка на УКП", checkParticipantsUKP },
+                { "Проверка на ОВЗ", checkParticipantsOVZ }
+            };
+            Category Participants = new Category("Участники", true, temp, queryForParticipants);
+            listOfEgeCombineQuerys.Add(Participants);
+
+            temp = new Dictionary<string, Action>
+            {
+                { "Проверка на телефон", checkMobilePhone },
+                { "Проверка на почту", checkEmail },
+                { "Проверка на код работника", checkWorkerCode },
+                { "Проверка на код станционарный телефон", checkStaticPhone },
+                { "Проверка на специализацию", checkParticipantSpecialization },
+                { "Проверка на прикрепление к ппэ", checkParticipantPP },
+                { "Проверка на категорию", checkParticipantCategory }
+            };
+            Category Workers = new Category("Работники", false, temp, "");/*Заменить запрос*/
+            listOfOgeCombineQuerys.Add(Workers);
+        }
         /*
-         * обновление списка готовых запросов срабатывает при смене бд
+         * обновление списка готовых и параметризированных запросов срабатывает при смене бд
          */
         private void showCurrentQuerys()
         {
-            //что быстрее. 
-            //Создать временный dict присвоить ему новый и пересчитать одним циколом или два dict пересчитать двумя foreach
+
+            /************Параметризированные запросы*******************/
+            /*что быстрее:
+            Создать временный dict присвоить ему новый и пересчитать одним циколом или два dict пересчитать двумя foreach*/
             if (combinedQueryMenu.DropDownItems.Count > 0)
                 combinedQueryMenu.DropDownItems.Clear();
             if (whichBase)
-            {
-                this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] { new ToolStripMenuItem("Участники", null, new EventHandler(combinedQueryMenu_Click)) });
-            }
+                foreach (Category cat in listOfEgeCombineQuerys) 
+                    this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] {
+                        new ToolStripMenuItem(cat.Name, null, new EventHandler(combinedQueryMenu_Click)) });
             else
-            {
-                this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] { new ToolStripMenuItem("Работники", null, new EventHandler(combinedQueryMenu_Click)) });
-            }            
-
+                foreach (Category cat in listOfOgeCombineQuerys)
+                    this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] {
+                        new ToolStripMenuItem(cat.Name, null, new EventHandler(combinedQueryMenu_Click)) });
+            
+            /* Файловые запросы*/
             completeQueryMenu.DropDownItems.Clear();
-            foreach (KeyValuePair<string, string> entry in whichBase ? sqlCommandsListForEge : sqlCommandsListForOge)
+            foreach (KeyValuePair<string, string> entry in whichBase ? listOfEgeCompleteQuerys : listOfEgeCompleteQuerys)
             {
                 ToolStripMenuItem anotherOne = new ToolStripMenuItem(entry.Key);
                 anotherOne.Click += new EventHandler(this.execSqlCommandEvent);
@@ -186,10 +206,11 @@ namespace FTMQ
          * */
         private void execSqlCommandEvent(object sender, EventArgs args)
         {
+            activeCategory = null;
             if (whichBase)
-                loadingDataInDataGridView(sqlCommandsListForEge[((ToolStripMenuItem)sender).Text]);
+                loadingDataInDataGridView(listOfEgeCompleteQuerys[((ToolStripMenuItem)sender).Text]);
             else
-                loadingDataInDataGridView(sqlCommandsListForOge[((ToolStripMenuItem)sender).Text]);
+                loadingDataInDataGridView(listOfEgeCompleteQuerys[((ToolStripMenuItem)sender).Text]);
         }
         
         //активируем базу ЕГЭ. Все запросы будут обращаться к ней
@@ -238,45 +259,93 @@ namespace FTMQ
                 excelApp.Visible = true;
             }
         }
+        /*          
+        * подгружаем данные из бд
+        * написать обработчик обрыва соединения------------------------------------------------------------ 
+        */
+        public void loadingDataInDataGridView(string queryText)
+        {
+            memorizedQuery = queryText;
+            try
+            {
+                dataGridView.DataSource = bindingSource1;
+                dataAdapter = new SqlDataAdapter(getPrefixFofBd() + queryText, connectionString);
+                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);
+                table = new SD.DataTable();
+                dataAdapter.Fill(table);
+                bindingSource1.DataSource = table;
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Ошибка \\/( * * )\\/: " + ex.Message);
+            }
+        }
+        private void dataGridView_CellEnter(object sender, DataGridViewCellEventArgs e) => previewBox.Text = "" + dataGridView[e.ColumnIndex, e.RowIndex].Value;
+        #endregion
 
         #region Parameters
         /*
          выполнение выбранных проверок
          сделано на основе имени параметра, что не есть хорошо и не делайте это дома
          */
-        public void additionalParametrChecking(List<string> list)
+        public void additionalParametrChecking(List<Action> list)
         {
-            listOfMethodsWithParaametrs = list;
-            loadingDataInDataGridView(mainSqlQuery);
+            loadingDataInDataGridView(listOfEgeCombineQuerys.Find(x => x.Name.Equals(nameActiveCategory)).Query);
             table.Columns.Add("Ошибки"); //добавляем столбец с описанием ошибок
-            Console.WriteLine("Колво записей: " + dataGridView.Rows.Count);
-            foreach (String item in listOfMethodsWithParaametrs)
+            activeCategory = list;
+            foreach (Action act in list)
+                act.Invoke();
+            clearingUnrelevantData();
+        }
+
+        private void checkParticipantCategory()
+        {
+            foreach (DataGridViewRow row in dataGridView.Rows)
             {
-                switch (item)
+                switch (row.Cells["Тип экзамена"].Value)
                 {
-                    case "Класс/Категория":
-                        Console.WriteLine("Класс/Категория");
-                        checkingCategoryClass();
-                        break;
-                    case "Серия/Тип доку":
-                        Console.WriteLine("Серия/Тип доку");
-                        checkingPassport();
-                        break;
-                    case "Дейст.рез/Зарег на жизнь":
-                        Console.WriteLine("Дейст. рез/Зарег на жизнь");
-                        checkingActiveResult();
-                        break;
-                    case "Наим/Параметр":
-                        Console.WriteLine("Наим/Параметр");
-                        checkingUKPPart();
-                        break;
-                    case "Тип экз/Параметр":
-                        Console.WriteLine("Тип экз/Параметр");
-                        checkingOVZPart();
-                        break;
+                   /* case 1:
+                        if (row.Cells["Спец рассадка"].Value.Equals(1) && !row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
+                        {
+                            Console.WriteLine("checkingOVZPart: ЕГЭ. Параметр ОВЗ не указан");
+                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || 
+                                !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                row.Cells["Ошибки"].Value += "Категория; ";
+                            row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
+                            row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
+                        }*/
                 }
             }
-            clearingUnrelevantData();
+        }
+
+        private void checkParticipantPP()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void checkParticipantSpecialization()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void checkStaticPhone()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void checkWorkerCode()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void checkEmail()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void checkMobilePhone()
+        {
+            throw new NotImplementedException();
         }
 
         private void clearingUnrelevantData()
@@ -307,7 +376,7 @@ namespace FTMQ
             Console.WriteLine("Записей на выходе: " + dataGridView.Rows.Count);
         }
 
-        private void checkingOVZPart()
+        private void checkParticipantsOVZ()
         {
             foreach (DataGridViewRow row in dataGridView.Rows)
             {
@@ -352,7 +421,7 @@ namespace FTMQ
             }
         }
 
-        private void checkingUKPPart()
+        private void checkParticipantsUKP()
         {
             foreach (DataGridViewRow row in dataGridView.Rows)
             {
@@ -375,7 +444,7 @@ namespace FTMQ
             }
         }
 
-        private void checkingActiveResult()
+        private void checkActiveResult()
         {
             try
             {
@@ -428,7 +497,7 @@ namespace FTMQ
             }
         }
 
-        private void checkingPassport()
+        private void checkPassport()
         {
             try
             {
@@ -463,7 +532,7 @@ namespace FTMQ
             }
         }
 
-        private void checkingCategoryClass()
+        private void checkCategoryClass()
         {
             try
             {
@@ -515,50 +584,43 @@ namespace FTMQ
                 MessageBox.Show("Ошибка: " + e);
             }
         }
-
-        private void checkingOgeWorkers()
-        {
-        }
         #endregion
 
+    #region Getters and Setters
         //возвращение префикса для выбранной базы 
-        public string getPrefixFofBd()
-        {
-            if (whichBase) return prefixForEge;
-            else return prefixForOge;
-        }
+        public string getPrefixFofBd() => whichBase ? prefixForEge : prefixForOge;
+        public string MemorizedQuery { get => memorizedQuery; set => memorizedQuery = value; }
+        public List<Category> ListOfEgeCombineQuerys { get => listOfEgeCombineQuerys; set => listOfEgeCombineQuerys = value; }
+        public MenuStrip getMenuStrip() => menuStrip1;
+        
+    #endregion
+    }
+}
 
-        //вовзращает активный запрос 
-        //на активную бд на основе флажка whichBase
-        public string getMemorizedQuery()
-        {
-            if (whichBase)
-                return memorizedQuery;
-            else
-                return memorizedQuery;
-        }
+public class Category
+{
+    private string name;
+    private bool bD;
+    private string query;
+    private Dictionary<string, Action> methods;
 
-        /*          
-         *подгружаем данные из бд
-         * написать обработчик обрыва соединения------------------------------------------------------------ 
-         */
-        public void loadingDataInDataGridView(string queryText)
-        {
-            memorizedQuery = queryText;
-            try
-            {
-                dataGridView.DataSource = bindingSource1;
-                dataAdapter = new SqlDataAdapter(getPrefixFofBd() + queryText, connectionString);
-                SqlCommandBuilder commandBuilder = new SqlCommandBuilder(dataAdapter);
-                table = new SD.DataTable();
-                dataAdapter.Fill(table);
-                bindingSource1.DataSource = table;
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show("Ошибка \\/( * * )\\/: " + ex.Message);
-            }
-        }
+    public string Name { get => name; set => name = value; }
+    public bool BD { get => bD; set => bD = value; }
+    public string Query { get => query; set => query = value; }
+    public Dictionary<string, Action> Methods { get => methods; set => methods = value; }
 
+    public Category(string name, bool bd, Dictionary<string,Action> methods, string query)
+    {
+        this.Name = name;
+        this.BD = bd;
+        this.Query = query;
+        this.Methods = methods;    
+    }
+
+    public Action getAction(string actionName)
+    {
+        foreach (KeyValuePair<string, Action> a in this.methods)
+            if (a.Key == actionName) return a.Value;
+        return null;
     }
 }
