@@ -6,7 +6,9 @@ namespace FTMQ
 {
     public partial class combinedQueryForm : Form
     {
-        private bdDataView instBdDataView;       
+        private bdDataView instBdDataView;
+        List<Action> listQuerysNames;
+
         public combinedQueryForm(bdDataView instBdDataView)
         {
             this.instBdDataView = instBdDataView; //----------            
@@ -17,7 +19,7 @@ namespace FTMQ
 
         private void execButton_Click(object sender, EventArgs e)
         {
-            List<Action> listQuerysNames = new List<Action>();
+            listQuerysNames = new List<Action>();
             foreach (KeyValuePair<string,Action> it in listQuerysCheckBox.CheckedItems)
             {
                 listQuerysNames.Add(it.Value);
@@ -27,8 +29,8 @@ namespace FTMQ
                 MessageBox.Show("Выберите параметр");
                 return;
             }
-            instBdDataView.additionalParametrChecking(listQuerysNames);
-
+            instBdDataView.additionalParameterChecking(listQuerysNames);
+            listQuerysCheckBox.DataSource = null;
             this.Hide();
             instBdDataView.Show();            
         }
@@ -48,12 +50,27 @@ namespace FTMQ
 
         public void addingParameters(Category cat)
         {
-            instBdDataView.Enabled = false;
             this.Show();
-            BindingSource bs = new BindingSource();
-            bs.DataSource = cat.Methods;
+            BindingSource bs = new BindingSource
+            {
+                DataSource = cat.Methods
+            };
             listQuerysCheckBox.DataSource = bs;
-            listQuerysCheckBox.DisplayMember = "Key";           
+            listQuerysCheckBox.DisplayMember = "Key";
+        }
+
+
+        private void selectAllButton_Click(object sender, EventArgs e)
+        {
+            bool temp = true;
+            if(listQuerysCheckBox.CheckedItems.Count != 0)
+            {
+                temp = false;
+            }
+            for(int i = 0; i < listQuerysCheckBox.Items.Count; i++)
+            {
+                listQuerysCheckBox.SetItemChecked(i, temp);
+            }
         }
     }
 }

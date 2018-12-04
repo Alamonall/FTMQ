@@ -1,4 +1,6 @@
-﻿namespace FTMQ
+﻿using System;
+
+namespace FTMQ
 {
     partial class combinedQueryForm
     {
@@ -32,6 +34,8 @@
             this.buttonsGroup = new System.Windows.Forms.GroupBox();
             this.execButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
+            this.selectAllButton = new System.Windows.Forms.Button();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.buttonsGroup.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -47,6 +51,7 @@
             // 
             // buttonsGroup
             // 
+            this.buttonsGroup.Controls.Add(this.selectAllButton);
             this.buttonsGroup.Controls.Add(this.execButton);
             this.buttonsGroup.Controls.Add(this.cancelButton);
             this.buttonsGroup.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -78,6 +83,17 @@
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
+            // selectAllButton
+            // 
+            this.selectAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.selectAllButton.Location = new System.Drawing.Point(435, 7);
+            this.selectAllButton.Name = "selectAllButton";
+            this.selectAllButton.Size = new System.Drawing.Size(99, 23);
+            this.selectAllButton.TabIndex = 2;
+            this.selectAllButton.Text = "Выбрать все";
+            this.selectAllButton.UseVisualStyleBackColor = true;
+            this.selectAllButton.Click += new System.EventHandler(this.selectAllButton_Click);
+            // 
             // combinedQueryForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -93,11 +109,14 @@
 
         }
 
+
         #endregion
 
         private System.Windows.Forms.CheckedListBox listQuerysCheckBox;
         private System.Windows.Forms.GroupBox buttonsGroup;
         private System.Windows.Forms.Button execButton;
         private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.Button selectAllButton;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }

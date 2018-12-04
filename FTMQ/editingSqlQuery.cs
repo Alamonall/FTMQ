@@ -42,8 +42,8 @@ namespace FTMQ
                 MessageBox.Show("Запрос пустой");
             else
             {
-                instBdDataView.loadingDataInDataGridView(queryRichTextBox.Text);
-                instBdDataView.activeCategory = null;
+                instBdDataView.executeSqlQuery(queryRichTextBox.Text);
+                instBdDataView.activeMethods = null;
                 this.Hide();
             }
         }
