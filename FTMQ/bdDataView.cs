@@ -357,6 +357,7 @@ namespace FTMQ
 
             excelApp.Workbooks.Add();
             Microsoft.Office.Interop.Excel._Worksheet ws = (Microsoft.Office.Interop.Excel.Worksheet)excelApp.ActiveSheet;
+            table.AcceptChanges();
             if (table == null)
                 MessageBox.Show("Кажется тебе нечего выгружать");
             else
@@ -642,9 +643,9 @@ namespace FTMQ
                         ) && (
                         row.Cells["Должность в ППЭ"].Value.Equals("Член ГЭК") ||
                         row.Cells["Должность в ППЭ"].Value.Equals("Руководитель ППЭ") ||
-                        row.Cells["Должность в ППЭ"].Value.Equals("Технический специалист ППЭ") ||
+                        row.Cells["Должность в ППЭ"].Value.Equals("Технический специалист ППЭ") /*||
                         row.Cells["Должность в ППЭ"].Value.Equals("Организатор в аудитории ППЭ") ||
-                        row.Cells["Должность в ППЭ"].Value.Equals("Организатор вне аудитории ППЭ")
+                        row.Cells["Должность в ППЭ"].Value.Equals("Организатор вне аудитории ППЭ")*/
                    ))
                 {
                     if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Указан номер стационарного телефона;\w*", RegexOptions.IgnoreCase))
@@ -714,7 +715,6 @@ namespace FTMQ
         }
         #endregion
         #region EgeChecking
-        /***********ege********************/
         private void checkParticipantsOVZ()
         {
             foreach (DataGridViewRow row in dataGridView.Rows)
@@ -759,7 +759,6 @@ namespace FTMQ
                 }
             }
         }
-
         private void checkParticipantsUKP()
         {
             foreach (DataGridViewRow row in dataGridView.Rows)
@@ -782,7 +781,6 @@ namespace FTMQ
                 }
             }
         }
-
         private void checkActiveResult()
         {
             try
@@ -835,7 +833,6 @@ namespace FTMQ
                 MessageBox.Show("Какого-то поля нет в таблице: + " + e);
             }
         }
-
         private void checkPassport()
         {
             try
@@ -870,7 +867,6 @@ namespace FTMQ
                 MessageBox.Show("Какого-то поля нет в таблице: + " + e);
             }
         }
-
         private void checkCategoryClass()
         {
             try
