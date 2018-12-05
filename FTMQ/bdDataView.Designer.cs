@@ -42,11 +42,12 @@ namespace FTMQ
             this.editingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToExcelTSMI = new System.Windows.Forms.ToolStripMenuItem();
+            this.pieOfDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.failToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.RichTextBox();
             this.dataGroupBox = new System.Windows.Forms.GroupBox();
-            this.bdLabel = new System.Windows.Forms.Label();
             this.dataGridView = new FTMQ.DoubleBufferedDataGridView();
+            this.bdLabel = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.dataGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
@@ -119,7 +120,8 @@ namespace FTMQ
             // resultToolStripMenuItem
             // 
             this.resultToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exportToExcelTSMI});
+            this.exportToExcelTSMI,
+            this.pieOfDataToolStripMenuItem});
             this.resultToolStripMenuItem.Name = "resultToolStripMenuItem";
             this.resultToolStripMenuItem.Size = new System.Drawing.Size(51, 20);
             this.resultToolStripMenuItem.Text = "Result";
@@ -127,9 +129,17 @@ namespace FTMQ
             // exportToExcelTSMI
             // 
             this.exportToExcelTSMI.Name = "exportToExcelTSMI";
-            this.exportToExcelTSMI.Size = new System.Drawing.Size(150, 22);
+            this.exportToExcelTSMI.Size = new System.Drawing.Size(152, 22);
             this.exportToExcelTSMI.Text = "Export to Excel";
             this.exportToExcelTSMI.Click += new System.EventHandler(this.exportToExcelTSMI_Click);
+            // 
+            // pieOfDataToolStripMenuItem
+            // 
+            this.pieOfDataToolStripMenuItem.Enabled = false;
+            this.pieOfDataToolStripMenuItem.Name = "pieOfDataToolStripMenuItem";
+            this.pieOfDataToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.pieOfDataToolStripMenuItem.Text = "Pie of Data";
+            this.pieOfDataToolStripMenuItem.Click += new System.EventHandler(this.pieOfDataToolStripMenuItem_Click);
             // 
             // failToolStripMenuItem
             // 
@@ -157,16 +167,6 @@ namespace FTMQ
             this.dataGroupBox.TabIndex = 3;
             this.dataGroupBox.TabStop = false;
             // 
-            // bdLabel
-            // 
-            this.bdLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bdLabel.AutoSize = true;
-            this.bdLabel.Location = new System.Drawing.Point(740, 5);
-            this.bdLabel.Name = "bdLabel";
-            this.bdLabel.Size = new System.Drawing.Size(29, 13);
-            this.bdLabel.TabIndex = 4;
-            this.bdLabel.Text = "EGE";
-            // 
             // dataGridView
             // 
             this.dataGridView.AllowUserToAddRows = false;
@@ -184,6 +184,16 @@ namespace FTMQ
             this.dataGridView.VirtualMode = true;
             this.dataGridView.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_CellEnter);
             this.dataGridView.Sorted += new System.EventHandler(this.dataGridView_Sorted);
+            // 
+            // bdLabel
+            // 
+            this.bdLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.bdLabel.AutoSize = true;
+            this.bdLabel.Location = new System.Drawing.Point(740, 5);
+            this.bdLabel.Name = "bdLabel";
+            this.bdLabel.Size = new System.Drawing.Size(29, 13);
+            this.bdLabel.TabIndex = 4;
+            this.bdLabel.Text = "EGE";
             // 
             // bdDataView
             // 
@@ -219,5 +229,6 @@ namespace FTMQ
         private GroupBox dataGroupBox;
         private DoubleBufferedDataGridView dataGridView;
         private Label bdLabel;
+        private ToolStripMenuItem pieOfDataToolStripMenuItem;
     }
 }

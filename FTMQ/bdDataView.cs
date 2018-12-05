@@ -19,6 +19,7 @@ namespace FTMQ
         private editQueryForm editQueryForm;
 
         private combinedQueryForm combinedQueryForm;
+        private Diagram diagram;
         private string connectionString = @"Data Source=172.16.22.1;
                                             Integrated Security=SSPI;
                                             Trusted_Connection=yes;
@@ -421,7 +422,13 @@ namespace FTMQ
                 bdLabel.Text = "OGE";
             }
         }
-
+        private void pieOfDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (diagram == null)
+                diagram = new Diagram();
+            this.Hide();
+            diagram.Show();
+        }
         #region Parameters
         /*
          выполнение выбранных проверок
@@ -928,8 +935,10 @@ namespace FTMQ
         public string MemorizedQuery { get => memorizedQuery; set => memorizedQuery = value; }
         public List<Category> ListOfEgeCombineQuerys { get => listOfEgeCombineQuerys; set => listOfEgeCombineQuerys = value; }
         public MenuStrip getMenuStrip() => menuStrip1;
-        
+
         #endregion
+
+      
     }
 }
 
