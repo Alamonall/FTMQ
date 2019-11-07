@@ -15,7 +15,7 @@ namespace FTMQ
     {
         private SqlDataAdapter dataAdapter = new SqlDataAdapter();
         private BindingSource bindingSource1 = new BindingSource();
-        
+
         private editQueryForm editQueryForm;
 
         private combinedQueryForm combinedQueryForm;
@@ -163,11 +163,11 @@ namespace FTMQ
                         ORDER BY 
                         g.GovernmentCode
                         ,w.StationWorkerCode";
-#endregion
+        #endregion
         private string memorizedQuery = @""; //запрос для тех, кто хочет его посмотреть
 
-        private static string prefixForEge = "use erbd_ege_reg_18_38 ";
-        private static string prefixForOge = "use erbd_gia_reg_18_38 ";
+        private static string prefixForEge = "use erbd_ege_reg_19_38 ";
+        private static string prefixForOge = "use erbd_gia_reg_19_38 ";
         public bool whichBase = true; // true при егэ, false при огэ
                                       //private string queryText = "";
 
@@ -196,24 +196,22 @@ namespace FTMQ
             switchBD();
         }
 
-      
-
-    #region MainMethods 
+        #region MainMethods 
         /*сложная реализацяи*/
-            private void dataGridView_Sorted(object sender, EventArgs e)
+        private void dataGridView_Sorted(object sender, EventArgs e)
         {
-            if(activeMethods != null && activeMethods.Count !=0 )
+            if (activeMethods != null && activeMethods.Count != 0)
                 foreach (Action act in activeMethods)
                     act.Invoke();
         }
-        
+
         //обработка окна редактирования запроса
         private void editingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (editQueryForm == null)
                 editQueryForm = new editQueryForm(this);
             editQueryForm.showingTheQuery();
-        }        
+        }
 
         private void combinedQueryMenu_Click(object sender, EventArgs e)
         {
@@ -236,15 +234,11 @@ namespace FTMQ
         {
             try
             {
+                // (!Directory.Exists("SqlCommands\\Ege\\") && !Directory.Exists("SqlCommands\\Oge\\"))
+                System.IO.Directory.CreateDirectory("SqlCommands\\Ege\\");
+                System.IO.Directory.CreateDirectory("SqlCommands\\Oge\\");
+
                 foreach (string file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory + "SqlCommands\\Ege\\", "*.sql"))
-                {
-                    using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(1251)))
-                    {
-                        String line = sr.ReadToEnd();
-                        listOfEgeCompleteQuerys.Add(Path.GetFileNameWithoutExtension(file), line);                     
-                    }
-                }
-                foreach (string file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory + "SqlCommands\\Gia\\", "*.sql"))
                 {
                     using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(1251)))
                     {
@@ -252,11 +246,19 @@ namespace FTMQ
                         listOfEgeCompleteQuerys.Add(Path.GetFileNameWithoutExtension(file), line);
                     }
                 }
+                foreach (string file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory + "SqlCommands\\Oge\\", "*.sql"))
+                {
+                    using (StreamReader sr = new StreamReader(file, Encoding.GetEncoding(1251)))
+                    {
+                        String line = sr.ReadToEnd();
+                        listOfOgeCompleteQuerys.Add(Path.GetFileNameWithoutExtension(file), line);
+                    }
+                }
             }
             catch (IOException ex)
             {
                 MessageBox.Show("Исключение говорит: " + ex.Message);
-            } 
+            }
         }
 
         private void setCombineQuerys()
@@ -274,13 +276,20 @@ namespace FTMQ
 
             temp = new Dictionary<string, Action>
             {
+                { "Проверка на почту", checkEmail }
+            };
+            Category TestCategory = new Category("Работники (test)", true, temp, queryForWorkers);
+            listOfEgeCombineQuerys.Add(TestCategory);
+
+            temp = new Dictionary<string, Action>
+            {
                 { "Проверка на специализацию", checkWorkersSpecialization },
                 { "Проверка на наличие типа документа", checkTypeDocument },
                 { "Проверка на наличие серии документа", checkSeriesDocument },
                 { "Проверка на наличие номера документа", checkNumberDocument },
                 { "Проверка на телефон", checkMobilePhone },
                 { "Проверка на наличие образование", checkEducationField },
-                { "Проверка на наличие категории", checkCategoryField },
+                //{ "Проверка на наличие категории", checkCategoryField },
                 { "Проверка на наличие должности в ОО", checkSchoolPosition },
                 { "Проверка на наличие должности в ППЭ", checkPPPosition },
                 { "Проверка на прикрепление работника к ППЭ", checkPPAttachment },
@@ -303,27 +312,27 @@ namespace FTMQ
             if (combinedQueryMenu.DropDownItems.Count > 0)
                 combinedQueryMenu.DropDownItems.Clear();
             if (whichBase)
-                foreach (Category cat in listOfEgeCombineQuerys) 
+                foreach (Category cat in listOfEgeCombineQuerys)
                     this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] {
                         new ToolStripMenuItem(cat.Name, null, new EventHandler(combinedQueryMenu_Click)) });
             else
                 foreach (Category cat in listOfOgeCombineQuerys)
                     this.combinedQueryMenu.DropDownItems.AddRange(new ToolStripItem[] {
                         new ToolStripMenuItem(cat.Name, null, new EventHandler(combinedQueryMenu_Click)) });
-            
+
             /* Файловые запросы*/
             completeQueryMenu.DropDownItems.Clear();
-            foreach (KeyValuePair<string, string> entry in whichBase ? listOfEgeCompleteQuerys : listOfEgeCompleteQuerys)
+            foreach (KeyValuePair<string, string> entry in whichBase ? listOfEgeCompleteQuerys : listOfOgeCompleteQuerys)
             {
                 ToolStripMenuItem anotherOne = new ToolStripMenuItem(entry.Key);
                 anotherOne.Click += new EventHandler(this.execSqlCommandEvent);
                 completeQueryMenu.DropDownItems.Add(anotherOne);
             }
         }
-         /*
-         * выполняет запрос из файла 
-         * первый метод для ОГЭ, второй для ЕГЭ
-         * */
+        /*
+        * выполняет запрос из файла 
+        * первый метод для ОГЭ, второй для ЕГЭ
+        * */
         private void execSqlCommandEvent(object sender, EventArgs args)
         {
             //activeCategory = null; /// ????
@@ -332,18 +341,18 @@ namespace FTMQ
             else
                 executeSqlQuery(listOfEgeCompleteQuerys[((ToolStripMenuItem)sender).Text]);
         }
-        
+
         //активируем базу ЕГЭ. Все запросы будут обращаться к ней
         private void egeToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            whichBase = true;            
+            whichBase = true;
             switchBD();
             showCurrentQuerys();
         }
         //активируем базу ОГЭ. Все запросы будут обращаться к ней
         private void ogeToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            whichBase = false;            
+            whichBase = false;
             switchBD();
             showCurrentQuerys();
         }
@@ -358,11 +367,11 @@ namespace FTMQ
 
             excelApp.Workbooks.Add();
             Microsoft.Office.Interop.Excel._Worksheet ws = (Microsoft.Office.Interop.Excel.Worksheet)excelApp.ActiveSheet;
-            table.AcceptChanges();
             if (table == null)
                 MessageBox.Show("Кажется тебе нечего выгружать");
             else
             {
+                table.AcceptChanges();
                 int rowCount = 1;
                 foreach (SD.DataRow row in table.Rows)
                 {
@@ -375,7 +384,6 @@ namespace FTMQ
                         }
                         ws.Cells[rowCount, i] = row[i - 1].ToString();
                     }
-
                 }
                 ws.Columns.AutoFit();
                 ws.Rows.AutoFit();
@@ -414,12 +422,14 @@ namespace FTMQ
                 egeToolStripMenuItem1.Enabled = false;
                 ogeToolStripMenuItem1.Enabled = true;
                 bdLabel.Text = "EGE";
+                yearLabel.Text = "2019";
             }
             else
             {
                 ogeToolStripMenuItem1.Enabled = false;
                 egeToolStripMenuItem1.Enabled = true;
                 bdLabel.Text = "OGE";
+                yearLabel.Text = "2019";
             }
         }
         private void pieOfDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -444,7 +454,7 @@ namespace FTMQ
             //    executeSqlQuery(listOfOgeCombineQuerys.Find(x => x.Name.Equals(nameActiveCategory)).Query);
             executeSqlQuery(activeCategory.Query);
             table.Columns.Add("Ошибки"); //добавляем столбец с описанием ошибок
-            activeMethods = list; 
+            activeMethods = list;
             foreach (Action act in list)
                 act.Invoke();
             clearingUnrelevantData();
@@ -478,111 +488,181 @@ namespace FTMQ
         }
 
         #region OgeChecking
+        
         private void checkNumberDocument()
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Номер"].Value.Equals(""))
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан номер документа;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указан номер документа; ";
-                    row.Cells["Номер"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Номер"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан номер документа;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указан номер документа; ";
+                        row.Cells["Номер"].Style.BackColor = Color.Aqua;
+                    }
                 }
+            }catch(Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
         private void checkEducationField()
         {
-            // (CASE WHEN et.EduTypeName IS NULL THEN 'Не указано образование; ' ELSE '' END) --Проверка на наличие образование
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Образование"].Value.Equals(""))
+                // (CASE WHEN et.EduTypeName IS NULL THEN 'Не указано образование; ' ELSE '' END) --Проверка на наличие образование
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указано образование;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указано образование; ";
-                    row.Cells["Образование"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Образование"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указано образование;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указано образование; ";
+                        row.Cells["Образование"].Style.BackColor = Color.Aqua;
+                    }
                 }
+            }catch(Exception e)
+            {
+                MessageBox.Show("Error: " + e);
             }
         }
         private void checkSeriesDocument()
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
-            {
-                if (row.Cells["Серия"].Value.Equals(""))
+            try { 
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана серия документа;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указана серия документа; ";
-                    row.Cells["Серия"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Серия"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана серия документа;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указана серия документа; ";
+                        row.Cells["Серия"].Style.BackColor = Color.Aqua;
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
+            }
         }
+
         private void checkTypeDocument()
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
-            {
-                if (row.Cells["Тип документа"].Value.Equals(""))
+            try { 
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан тип документа;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указан тип документа; ";
-                    row.Cells["Тип документа"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Тип документа"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан тип документа;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указан тип документа; ";
+                        row.Cells["Тип документа"].Style.BackColor = Color.Aqua;
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
+            }
         }
+
         private void checkCategoryField()
         {
-            //(CASE WHEN w.SWorkerCategory IS NULL THEN 'Не указана квалификационная категория; ' ELSE '' END) --
-            //CASE WHEN w.SWorkerCategory LIKE 'Учитель'  OR w.SWorkerCategory LIKE 'учитель'
-            //--  THEN 'Категория "учитель"; ' ELSE '' END) --Проверка на наличие категории
-
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Квалификационная категория"].Value.Equals(""))
+                
+                //(CASE WHEN w.SWorkerCategory IS NULL THEN 'Не указана квалификационная категория; ' ELSE '' END) --
+                //CASE WHEN w.SWorkerCategory LIKE 'Учитель'  OR w.SWorkerCategory LIKE 'учитель'
+                //--  THEN 'Категория "учитель"; ' ELSE '' END) --Проверка на наличие категории
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана квалификационная категория;\w*", RegexOptions.Compiled))
-                        row.Cells["Ошибки"].Value += "Не указана квалификационная категория; ";
-                    row.Cells["Квалификационная категория"].Style.BackColor = Color.Aqua;
-                } else if(Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"учитель", RegexOptions.IgnoreCase))
-                {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не конкретиизирована категория;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не конкретиизирована категория; ";
-                    row.Cells["Квалификационная категория"].Style.BackColor = Color.Aqua;
+                    if (Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"учитель", RegexOptions.IgnoreCase)
+                        && !Regex.IsMatch((string)row.Cells["Предметная специализация"].Value, @"Специализация отсутствует.", RegexOptions.IgnoreCase))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не конкретизирована категория;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не конкретизирована категория; ";
+                        row.Cells["Квалификационная категория"].Style.BackColor = Color.Aqua;
+                    }
+                    if (Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"учитель", RegexOptions.IgnoreCase)
+                        &&
+                        (
+                        (Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sРусск\s", RegexOptions.IgnoreCase) &&
+                            Regex.IsMatch((string)row.Cells["Предметная специализация"].Value, @"\sРусск\s", RegexOptions.IgnoreCase)) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sМатемат\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sФизик\s", RegexOptions.IgnoreCase) ||
+
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sХими\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИнформат\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sБиолог\s", RegexOptions.IgnoreCase) ||
+
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИстор\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sГеограф\s", RegexOptions.IgnoreCase) ||
+                        !(Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sАнгли\s", RegexOptions.IgnoreCase) &&
+                        Regex.IsMatch((string)row.Cells["Предметная специализация"].Value, @"\sАнгли\s", RegexOptions.IgnoreCase)) ||
+
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sНемец\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sФранцуз\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sОбщество\s", RegexOptions.IgnoreCase) ||
+
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИспанс\s", RegexOptions.IgnoreCase) ||
+                        Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sЛитерат\s", RegexOptions.IgnoreCase)
+                        ))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не конкретизирована категория;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не конкретизирована категория; ";
+                        row.Cells["Квалификационная категория"].Style.BackColor = Color.Aqua;
+                    }
+
                 }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: "+ e);
+            }
         }
+
         private void checkSchoolPosition()
         {
+            try { 
             //--+(CASE WHEN w.SchoolPosition IS NULL THEN 'Не указана должность в ОО; ' ELSE '' END) --Проверка на наличие должности в ОО
             /*(CASE WHEN w.SchoolPosition LIKE 'Учитель'  OR w.SchoolPosition LIKE 'учитель' 
             --  THEN 'Должность "учитель"; ' ELSE '' END) --Проверка на наличие должности в ОО**/
-            foreach (DataGridViewRow row in dataGridView.Rows)
-            {
-                if (row.Cells["Должность в ОО"].Value.Equals(""))
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана должность в ОО;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указана должность в ОО; ";
-                    row.Cells["Должность в ОО"].Style.BackColor = Color.Aqua;
-                } else if(Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"учитель", RegexOptions.IgnoreCase))
-                {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не конкретиизирована категория;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не конкретиизирована категория; ";
-                    row.Cells["Должность в ОО"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Должность в ОО"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана должность в ОО;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указана должность в ОО; ";
+                        row.Cells["Должность в ОО"].Style.BackColor = Color.AliceBlue;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
             }
         }
         private void checkPPPosition()
         {
-            //--+(CASE WHEN sp.SWorkerPositionname IS NULL THEN 'Не указана должность в ППЭ; ' ELSE '' END) --Проверка на наличие должности в ППЭ 
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Должность в ППЭ"].Value.Equals(""))
+                //--+(CASE WHEN sp.SWorkerPositionname IS NULL THEN 'Не указана должность в ППЭ; ' ELSE '' END) --Проверка на наличие должности в ППЭ 
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана должность в ППЭ;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указана должность в ППЭ; ";
-                    row.Cells["Должность в ППЭ"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Должность в ППЭ"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указана должность в ППЭ;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указана должность в ППЭ; ";
+                        row.Cells["Должность в ППЭ"].Style.BackColor = Color.Aqua;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
             }
         }
         private void checkPPAttachment()
         {
+            try { 
             //--+(CASE WHEN swos.StationCode IS NULL THEN 'Нет прикрепления к ППЭ; ' ELSE '' END) --Проверка на прикрепление работника к ППЭ
             foreach (DataGridViewRow row in dataGridView.Rows)
             {
@@ -593,9 +673,15 @@ namespace FTMQ
                     row.Cells["Прикреплен к ППЭ"].Style.BackColor = Color.Aqua;
                 }
             }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
+            }
         }
         private void checkWorkerCode()
         {
+            try { 
             /*,(CASE WHEN w.StationWorkerCode IS NULL THEN 'Нет кода работника; ' ELSE '' END) --Проверка на наличие кода работника*/
             foreach (DataGridViewRow row in dataGridView.Rows)
             {
@@ -606,187 +692,211 @@ namespace FTMQ
                         row.Cells["Ошибки"].Value += "Нет кода работника; ";
                 }
             }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error: " + e);
+            }
         }
         private void checkEmail()
         {
-            //[Почта]
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Почта"].Value.Equals(""))
+                string mails =
+                @"\w*@(yandex.ru|mail.ru|gmail.com|rambler.ru|list.ru|rambler.ru|ya.ru|inbox.ru|bk.ru)$";
+                //@"\w*(@mail.ru$|\w*@gmail.com$|\w*@rambler.ru|\w*@list.ru|\w*@rambler.ru$|\w*@epsilum.ru$|\w*@ya.ru$|\w*@inbox.ru$|\w*@polovinko.ru$|\w*@bk.ru$|\w*@ua.fm$|\w*@tandex.ru$| \w*@ro.ru)$";
+                //[Почта]
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Нет почты;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Нет почты; ";
-                    row.Cells["Почта"].Style.BackColor = Color.Aqua;
+                    Console.WriteLine("Почта на входе: " + row.Cells["Почта"].Value);
+
+                    if (row.Cells["Почта"].Value.Equals("") ||
+                        !Regex.IsMatch((string)row.Cells["Почта"].Value, mails, RegexOptions.IgnoreCase)
+                        )
+                    {
+                        Console.WriteLine("Почта на выходе: " + row.Cells["Почта"].Value);
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Некорректная почта; \w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Некорректная почта; ";
+                        //row.Cells["Почта"].Style.BackColor = Color.Aqua;
+                    }
                 }
+            }catch(Exception e)
+            {
+                MessageBox.Show("Error: " + e);
             }
         }
         private void checkMobilePhone()
         {
-            /*--+(CASE WHEN w.Phones ='' THEN 'Не указан телефон; ' ELSE '' END) --Проверка на наличие телефона
-                --+(CASE WHEN (w.Phones LIKE '8395%'  OR w.Phones LIKE '8(395%' OR w.Phones LIKE '8-395%' OR w.Phones LIKE '(8395%' OR 
-                --             w.Phones LIKE '(395%'  OR w.Phones LIKE '((395%' OR w.Phones LIKE '395%' OR
-                --             w.Phones LIKE '+7395%' OR w.Phones LIKE '+7(395%')
-                --			 AND 
-                --		    (sp.SWorkerPositionname='Член ГЭК' OR sp.SWorkerPositionname='Руководитель ППЭ' OR sp.SWorkerPositionname='Технический специалист ППЭ')
-                --	   THEN 'Указан номер стационарного телефона; ' ELSE '' END) -- Проверка на мобильный номер у работников ППЭ*/
-
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                if (row.Cells["Телефоны"].Value.Equals(""))
+                /*--+(CASE WHEN w.Phones ='' THEN 'Не указан телефон; ' ELSE '' END) --Проверка на наличие телефона
+                    --+(CASE WHEN (w.Phones LIKE '8395%'  OR w.Phones LIKE '8(395%' OR w.Phones LIKE '8-395%' OR w.Phones LIKE '(8395%' OR 
+                    --             w.Phones LIKE '(395%'  OR w.Phones LIKE '((395%' OR w.Phones LIKE '395%' OR
+                    --             w.Phones LIKE '+7395%' OR w.Phones LIKE '+7(395%')
+                    --			 AND 
+                    --		    (sp.SWorkerPositionname='Член ГЭК' OR sp.SWorkerPositionname='Руководитель ППЭ' OR sp.SWorkerPositionname='Технический специалист ППЭ')
+                    --	   THEN 'Указан номер стационарного телефона; ' ELSE '' END) -- Проверка на мобильный номер у работников ППЭ*/
+
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан телефон;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Не указан телефон; ";
-                    row.Cells["Телефоны"].Style.BackColor = Color.Aqua;
+                    if (row.Cells["Телефоны"].Value.Equals(""))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не указан телефон;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Не указан телефон; ";
+                        row.Cells["Телефоны"].Style.BackColor = Color.Aqua;
                     }
-                else if((
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^8395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^8\(395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(8395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(\(395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^+7395\w", RegexOptions.Compiled) ||
-                        Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^+7\(395\w", RegexOptions.Compiled) 
-                        ) && (
-                        row.Cells["Должность в ППЭ"].Value.Equals("Член ГЭК") ||
-                        row.Cells["Должность в ППЭ"].Value.Equals("Руководитель ППЭ") ||
-                        row.Cells["Должность в ППЭ"].Value.Equals("Технический специалист ППЭ") /*||
+                    else if ((
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^8395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^8\(395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(8395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^\(\(395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^+7395\w", RegexOptions.Compiled) ||
+                            Regex.IsMatch((string)row.Cells["Телефоны"].Value, @"^+7\(395\w", RegexOptions.Compiled)
+                            ) && (
+                            row.Cells["Должность в ППЭ"].Value.Equals("Член ГЭК") ||
+                            row.Cells["Должность в ППЭ"].Value.Equals("Руководитель ППЭ") ||
+                            row.Cells["Должность в ППЭ"].Value.Equals("Технический специалист ППЭ") /*||
                         row.Cells["Должность в ППЭ"].Value.Equals("Организатор в аудитории ППЭ") ||
                         row.Cells["Должность в ППЭ"].Value.Equals("Организатор вне аудитории ППЭ")*/
-                   ))
-                {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Указан номер стационарного телефона;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "Указан номер стационарного телефона; ";
-                    row.Cells["Телефоны"].Style.BackColor = Color.Aqua;
+                    ))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Указан номер стационарного телефона;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "Указан номер стационарного телефона; ";
+                        row.Cells["Телефоны"].Style.BackColor = Color.Aqua;
+                    }
+
                 }
-              
-            } 
+            }catch(Exception e)
+            {
+                MessageBox.Show("Error: " + e);
+            }
         }
         private void checkWorkersSpecialization()
         {
-            /*
-             *  (w.SWorkerCategory LIKE '%Русск%'    OR w.SWorkerCategory LIKE '%русск%' OR 
-			 w.SchoolPosition LIKE '%Русск%'    OR w.SchoolPosition LIKE '%русск%' OR
-			 ) 
-			 AND
-			(sws.[Нет] = 1)*/
             foreach (DataGridViewRow row in dataGridView.Rows)
             {
+                if (((Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"учитель", RegexOptions.IgnoreCase)
+                        && getSpecialization((string)row.Cells["Квалификационная категория"].Value) > 0)// если больше нуля - существующий предмет, -1 - несуществующий предмет
 
-                if ((
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sРусск\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sМатемат\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sФизик\s", RegexOptions.IgnoreCase) ||
+                    || (Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"учитель", RegexOptions.IgnoreCase)
+                        && (getSpecialization((string)row.Cells["Должность в ОО"].Value) > 0 || getSpecialization((string)row.Cells["Должность в ОО"].Value) > 0))) // если больше нуля - существующий предмет, -1 - несуществующий предмет
 
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sХими\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИнформат\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sБиолог\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИстор\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sГеограф\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sАнгли\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sНемец\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sФранцуз\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sОбщество\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sИспанс\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Должность в ОО"].Value, @"\sЛитерат\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sЛитерат\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sМатемат\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sФизик\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sХими\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sИнформат\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sБиолог\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sИстор\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sГеограф\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sАнгли\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sНемец\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sФранцуз\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sОбщество\s", RegexOptions.IgnoreCase) ||
-
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sИспанс\s", RegexOptions.IgnoreCase) ||
-                    Regex.IsMatch((string)row.Cells["Квалификационная категория"].Value, @"\sЛитерат\s", RegexOptions.IgnoreCase) 
-                    )
-                    && row.Cells["Должность в ОО"].Value.Equals(1))
+                    && Regex.IsMatch((string)row.Cells["Предметная специализация"].Value, @"Специализация отсутствует;", RegexOptions.IgnoreCase))
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\wОтсутсвует специализация;\w*", RegexOptions.IgnoreCase))
+                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Не конкретизирована категория;\w*", RegexOptions.IgnoreCase))
+                        row.Cells["Ошибки"].Value += "Не конкретизирована категория; ";
+                    row.Cells["Квалификационная категория"].Style.BackColor = Color.DodgerBlue;
+                }
+                else if (!Regex.IsMatch((string)row.Cells["Предметная специализация"].Value, "Специализация отсутствует;", RegexOptions.IgnoreCase)
+                    && getSpecialization((string)row.Cells["Предметная специализация"].Value) != -1
+                    && getSpecialization((string)row.Cells["Должность в ОО"].Value) != getSpecialization((string)row.Cells["Предметная специализация"].Value)
+                      && getSpecialization((string)row.Cells["Квалификационная категория"].Value) != getSpecialization((string)row.Cells["Предметная специализация"].Value))
+                {
+                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\wОтсутсвует специализация; \w*", RegexOptions.IgnoreCase))
                         row.Cells["Ошибки"].Value += "Отсутсвует специализация; ";
-                    row.Cells["Должность в ОО"].Style.BackColor = Color.Aqua;
+                    row.Cells["Должность в ОО"].Style.BackColor = Color.FloralWhite;
                 }
             }
         }
+
+        public int getSpecialization(string str)
+        {
+            String[] Subs = { "Литерат", "Математ", "Физик", "Хими", "Информат", "Биолог", "Истор", "Географ", "Англи", "Немец", "Француз", "Общество", "Испанс", "Русск" };
+            for (int i = 0; i < 14; i++)
+            {
+                if (Regex.IsMatch(str, Subs[i] + "+", RegexOptions.IgnoreCase | RegexOptions.Compiled))
+                    return i;
+            }
+            Console.WriteLine("false");
+            return -1;
+        }
+ 
+
         #endregion
         #region EgeChecking
         private void checkParticipantsOVZ()
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-                switch (row.Cells["Тип экзамена"].Value)
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    case 1:
-                        if (row.Cells["Спец рассадка"].Value.Equals(1) && !row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
-                        {
-                            Console.WriteLine("checkingOVZPart: ЕГЭ. Параметр ОВЗ не указан");
-                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
-                                row.Cells["Ошибки"].Value += "Категория; ";
-                            row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
-                            row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
-                        }
-                        else if (row.Cells["Спец рассадка"].Value.Equals(0) && row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
-                        {
-                            Console.WriteLine("checkingOVZPart: ЕГЭ. Спец рассадка неверна");
-                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
-                                row.Cells["Ошибки"].Value += "Категория; ";
-                            row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
-                            row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
-                        }
-                        break;
-                    case 2:
-                        if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
-                        {
-                            Console.WriteLine("checkingOVZPart: ГВЭ");
-                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
-                                row.Cells["Ошибки"].Value += "Категория; ";
-                            row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
-                        }
-                        break;
-                    case 3:
-                        if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
-                        {
-                            if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
-                                row.Cells["Ошибки"].Value += "Категория; ";
-                            row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
-                        }
-                        break;
+                    switch (row.Cells["Тип экзамена"].Value)
+                    {
+                        case 1:
+                            if (row.Cells["Спец рассадка"].Value.Equals(1) && !row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
+                            {
+                                Console.WriteLine("checkingOVZPart: ЕГЭ. Параметр ОВЗ не указан");
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Категория; ";
+                                row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
+                                row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
+                            }
+                            //else if (row.Cells["Спец рассадка"].Value.Equals(0) && row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7))
+                            //{
+                            //    Console.WriteLine("checkingOVZPart: ЕГЭ. Спец рассадка неверна");
+                            //    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                            //        row.Cells["Ошибки"].Value += "Категория; ";
+                            //    row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
+                            //    row.Cells["Спец рассадка"].Style.BackColor = Color.Yellow;
+                            //}
+                            break;
+                        case 2:
+                            if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
+                            {
+                                Console.WriteLine("checkingOVZPart: ГВЭ");
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Категория; ";
+                                row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
+                            }
+                            break;
+                        case 3:
+                            if (!row.Cells["Параметр ОВЗ/УКП"].Value.Equals(7) && !row.Cells["Параметр УКП"].Value.Equals(6))
+                            {
+                                if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Категория;\w*", RegexOptions.IgnoreCase))
+                                    row.Cells["Ошибки"].Value += "Категория; ";
+                                row.Cells["Тип экзамена"].Style.BackColor = Color.Yellow;
+                            }
+                            break;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+
             }
         }
+        
         private void checkParticipantsUKP()
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            try
             {
-
-                //Console.WriteLine("Параметр УКП: " + row.Cells["Параметр УКП"].Value + "; Школа: " + row.Cells["Наименование школы"].Value + ";");
-                if ((Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sУКП\s") ||
-                    Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sГУФСИН\s") ||
-                    Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sУФСИН\s") ||
-                    Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sСИЗО\s") ||
-                    (row.Cells["Наименование школы"].Value.Equals("МОУ Бозойская В(С)ОШ")) ||
-                    (row.Cells["Наименование школы"].Value.Equals("МОУ ИРМО В(С)ОШ"))
-                    )
-                    && !row.Cells["Параметр УКП"].Value.Equals(6))
+                foreach (DataGridViewRow row in dataGridView.Rows)
                 {
-                    if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*УКП;\w*", RegexOptions.IgnoreCase))
-                        row.Cells["Ошибки"].Value += "УКП; ";
-                    row.Cells["Параметр УКП"].Style.BackColor = Color.Cyan;
-                    row.Cells["Наименование школы"].Style.BackColor = Color.Cyan;
+
+                    //Console.WriteLine("Параметр УКП: " + row.Cells["Параметр УКП"].Value + "; Школа: " + row.Cells["Наименование школы"].Value + ";");
+                    if ((Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sУКП\s") ||
+                        Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sГУФСИН\s") ||
+                        Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sУФСИН\s") ||
+                        Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sСИЗО\s") ||
+                        (row.Cells["Наименование школы"].Value.Equals("МОУ Бозойская В(С)ОШ")) ||
+                        Regex.IsMatch((string)row.Cells["Наименование школы"].Value, @"\sМОУ ИРМО В(С)ОШ\s")
+                        )
+                        && !row.Cells["Параметр УКП"].Value.Equals(6))
+                    {
+                        if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*УКП;\w*", RegexOptions.IgnoreCase))
+                            row.Cells["Ошибки"].Value += "УКП; ";
+                        row.Cells["Параметр УКП"].Style.BackColor = Color.Cyan;
+                        row.Cells["Наименование школы"].Style.BackColor = Color.Cyan;
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                    MessageBox.Show("Error: " + e);
+                }
         }
         private void checkActiveResult()
         {
@@ -804,8 +914,8 @@ namespace FTMQ
                                 {
                                     if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
                                         row.Cells["Ошибки"].Value += "Экзамен; ";
-                                    row.Cells["Допуск"].Style.BackColor = Color.Yellow;
-                                    row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
+                                    row.Cells["Допуск"].Style.BackColor = Color.Green;
+                                    row.Cells["Код предмета"].Style.BackColor = Color.Green;
                                 }
                                 break;
                             case 2: //допуск на мат
@@ -813,23 +923,23 @@ namespace FTMQ
                                 {
                                     if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
                                         row.Cells["Ошибки"].Value += "Экзамен; ";
-                                    row.Cells["Допуск"].Style.BackColor = Color.Yellow;
-                                    row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
+                                    row.Cells["Допуск"].Style.BackColor = Color.Green;
+                                    row.Cells["Код предмета"].Style.BackColor = Color.Green;
                                 }
                                 break;
                             case 3:
                                 if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
                                     row.Cells["Ошибки"].Value += "Экзамен; ";
-                                row.Cells["Допуск"].Style.BackColor = Color.Yellow;
-                                row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
+                                row.Cells["Допуск"].Style.BackColor = Color.Green;
+                                row.Cells["Код предмета"].Style.BackColor = Color.Green;
                                 break;
                             case 0:
                                 if (!(row.Cells["Код предмета"].Value.Equals(2) || row.Cells["Код предмета"].Value.Equals(22)) && !row.Cells["Код предмета"].Value.Equals(1))
                                 {
                                     if (row.Cells["Ошибки"].Value.GetType().Equals(typeof(DBNull)) || !Regex.IsMatch((string)row.Cells["Ошибки"].Value, @"\w*Экзамен;\w*", RegexOptions.IgnoreCase))
                                         row.Cells["Ошибки"].Value += "Экзамен; ";
-                                    row.Cells["Допуск"].Style.BackColor = Color.Yellow;
-                                    row.Cells["Код предмета"].Style.BackColor = Color.Yellow;
+                                    row.Cells["Допуск"].Style.BackColor = Color.Green;
+                                    row.Cells["Код предмета"].Style.BackColor = Color.Green;
                                 }
                                 break;
                         }
@@ -840,7 +950,9 @@ namespace FTMQ
                 MessageBox.Show("Какого-то поля нет в таблице: + " + e);
             }
         }
-        private void checkPassport()
+
+        /*проверка на соотвествие категории документа с введенными данными (серия, номер) */
+            private void checkPassport()
         {
             try
             {
@@ -938,34 +1050,7 @@ namespace FTMQ
 
         #endregion
 
-      
     }
 }
 
-public class Category
-{
-    private string name;
-    private bool bD;
-    private string query;
-    private Dictionary<string, Action> methods;
 
-    public string Name { get => name; set => name = value; }
-    public bool BD { get => bD; set => bD = value; }
-    public string Query { get => query; set => query = value; }
-    public Dictionary<string, Action> Methods { get => methods; set => methods = value; }
-
-    public Category(string name, bool bd, Dictionary<string,Action> methods, string query)
-    {
-        this.Name = name;
-        this.BD = bd;
-        this.Query = query;
-        this.Methods = methods;    
-    }
-
-    public Action getAction(string actionName)
-    {
-        foreach (KeyValuePair<string, Action> a in this.methods)
-            if (a.Key == actionName) return a.Value;
-        return null;
-    }
-}

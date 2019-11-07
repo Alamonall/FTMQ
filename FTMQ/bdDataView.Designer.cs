@@ -48,6 +48,7 @@ namespace FTMQ
             this.dataGroupBox = new System.Windows.Forms.GroupBox();
             this.dataGridView = new FTMQ.DoubleBufferedDataGridView();
             this.bdLabel = new System.Windows.Forms.Label();
+            this.yearLabel = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.dataGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
@@ -129,7 +130,7 @@ namespace FTMQ
             // exportToExcelTSMI
             // 
             this.exportToExcelTSMI.Name = "exportToExcelTSMI";
-            this.exportToExcelTSMI.Size = new System.Drawing.Size(152, 22);
+            this.exportToExcelTSMI.Size = new System.Drawing.Size(150, 22);
             this.exportToExcelTSMI.Text = "Export to Excel";
             this.exportToExcelTSMI.Click += new System.EventHandler(this.exportToExcelTSMI_Click);
             // 
@@ -137,7 +138,7 @@ namespace FTMQ
             // 
             this.pieOfDataToolStripMenuItem.Enabled = false;
             this.pieOfDataToolStripMenuItem.Name = "pieOfDataToolStripMenuItem";
-            this.pieOfDataToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.pieOfDataToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
             this.pieOfDataToolStripMenuItem.Text = "Pie of Data";
             this.pieOfDataToolStripMenuItem.Click += new System.EventHandler(this.pieOfDataToolStripMenuItem_Click);
             // 
@@ -189,15 +190,26 @@ namespace FTMQ
             // 
             this.bdLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.bdLabel.AutoSize = true;
-            this.bdLabel.Location = new System.Drawing.Point(740, 5);
+            this.bdLabel.Location = new System.Drawing.Point(711, 7);
             this.bdLabel.Name = "bdLabel";
             this.bdLabel.Size = new System.Drawing.Size(29, 13);
             this.bdLabel.TabIndex = 4;
             this.bdLabel.Text = "EGE";
             // 
+            // yearLabel
+            // 
+            this.yearLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.yearLabel.AutoSize = true;
+            this.yearLabel.Location = new System.Drawing.Point(746, 7);
+            this.yearLabel.Name = "yearLabel";
+            this.yearLabel.Size = new System.Drawing.Size(31, 13);
+            this.yearLabel.TabIndex = 5;
+            this.yearLabel.Text = "2017";
+            // 
             // bdDataView
             // 
             this.ClientSize = new System.Drawing.Size(785, 461);
+            this.Controls.Add(this.yearLabel);
             this.Controls.Add(this.bdLabel);
             this.Controls.Add(this.dataGroupBox);
             this.Controls.Add(this.previewBox);
@@ -230,5 +242,6 @@ namespace FTMQ
         private DoubleBufferedDataGridView dataGridView;
         private Label bdLabel;
         private ToolStripMenuItem pieOfDataToolStripMenuItem;
+        private Label yearLabel;
     }
 }

@@ -75,6 +75,7 @@
     <Compile Include="bdDataView.Designer.cs">
       <DependentUpon>bdDataView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Category.cs" />
     <Compile Include="Diagram.cs">
       <SubType>Form</SubType>
     </Compile>
